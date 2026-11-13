@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Fathom Deep</title>
+<title>Sea Salt</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -140,7 +140,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   <!-- Title -->
   <section class="title" id="screen-title">
     <p class="kicker">a daily word dive</p>
-    <h1>Fath<i>o</i>m</h1>
+    <h1>Sea <i>Salt</i></h1>
     <p class="rules">5 prompts · 20 seconds each</p>
     <p class="howto">Type one answer per prompt. <b>Everyone's answer</b> keeps you near the surface. <b>An answer nobody else thinks of</b> drops you into the dark. How deep can you go?</p>
     <ul class="zones" aria-label="Ocean zones">
@@ -199,7 +199,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
     <p class="toast" id="toast" aria-live="polite"></p>
   </section>
 
-  <p class="foot" id="foot">Fathom · daily word dive</p>
+  <p class="foot" id="foot">Sea Salt · daily word dive</p>
 </div>
 
 <script>
@@ -267,7 +267,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   const TIME = 20;
   const $ = id => document.getElementById(id);
   const DAY = "#" + (Math.floor((Date.now() - Date.UTC(2026, 9, 1)) / 864e5) + 1);
-  $("foot").textContent = `Fathom ${DAY} · daily word dive`;
+  $("foot").textContent = `Sea Salt ${DAY} · daily word dive`;
 
   const screens = ["title", "play", "verdict", "results"];
   function show(name) {
@@ -352,7 +352,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
       li.append(a, t); ol.appendChild(li);
     });
     const link = /^https?:/.test(location.href) ? "\n" + location.href.split("#")[0] : "";
-    $("share-text").value = `Fathom ${DAY} · ${fmt(depth)} m · ${zoneOf(depth)}\n${trail.map(r => EMOJI[r.tier]).join(" ")}  ${score} pts\nFound a one in a cinnamillion.` + link;
+    $("share-text").value = `Sea Salt ${DAY} · ${fmt(depth)} m · ${zoneOf(depth)}\n${trail.map(r => EMOJI[r.tier]).join(" ")}  ${score} pts\nFound a one in a cinnamillion.` + link;
     $("toast").textContent = "";
     show("results");
   }
