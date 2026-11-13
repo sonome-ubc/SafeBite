@@ -1,0 +1,470 @@
+<title>One in a Cinnamillion</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Pinyon+Script&family=Figtree:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one phone-width column; a top-down cinnamon bun is the board, and every answer rolls you further into its swirl. */
+:root {
+  --cinnamon: #6a3b30;      /* poster brown */
+  --cinnamon-deep: #4a2620;
+  --crust: #c77a3a;
+  --cream: #f1e9dc;
+  --glaze: #fffaf0;
+  --butter: #f6d77b;
+  --muted: #d9c3ae;
+  --display: "Gloock", "Georgia", serif;
+  --script: "Pinyon Script", "Snell Roundhand", cursive;
+  --body: "Figtree", system-ui, sans-serif;
+  --mono: "DM Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  background: var(--cinnamon);
+  background-image: radial-gradient(120% 70% at 50% 0%, #7a4538 0%, var(--cinnamon) 55%, var(--cinnamon-deep) 100%);
+  background-attachment: fixed;
+  color: var(--cream);
+  font-family: var(--body);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+.app {
+  max-width: 560px;
+  min-height: 100%;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 18px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); outline-offset: 3px; }
+
+/* HUD */
+.hud { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.chip {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  border: 1px solid rgba(241,233,220,.28); border-radius: 999px; padding: 5px 12px;
+}
+.stat { display: flex; flex-direction: column; gap: 2px; min-width: 76px; }
+.stat:last-child { text-align: right; }
+.stat small { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; color: var(--muted); text-transform: uppercase; }
+.stat b { font-family: var(--mono); font-weight: 500; font-size: 20px; font-variant-numeric: tabular-nums; color: var(--butter); }
+.hud[hidden] { display: none !important; }
+
+/* Board */
+.board { position: relative; width: min(100%, 400px); aspect-ratio: 1; max-width: 100%; margin: 0 auto; }
+.board canvas { width: 100%; height: 100%; display: block; }
+
+/* Title screen */
+.title { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.title .flourish { font-family: var(--script); font-size: clamp(54px, 15vw, 84px); line-height: .8; color: var(--cream); margin: 0; }
+.title h1 {
+  font-family: var(--display); font-weight: 400; margin: 0; line-height: .95;
+  font-size: clamp(40px, 11.5vw, 64px); letter-spacing: -.01em; text-wrap: balance;
+}
+.title .rules { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; color: var(--muted); margin: 10px 0 0; }
+.cta {
+  border: 0; border-radius: 999px; background: var(--butter); color: var(--cinnamon-deep);
+  font-weight: 700; font-size: 17px; letter-spacing: .04em; padding: 15px 34px;
+  box-shadow: 0 6px 0 #c9a54a, 0 12px 24px rgba(0,0,0,.25);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.cta:active { transform: translateY(4px); box-shadow: 0 2px 0 #c9a54a, 0 6px 14px rgba(0,0,0,.25); }
+.ghost {
+  background: transparent; border: 1px solid rgba(241,233,220,.35); border-radius: 999px;
+  padding: 11px 22px; font-size: 14px; font-weight: 600;
+}
+.howto { font-size: 14px; line-height: 1.55; color: var(--muted); max-width: 40ch; margin: 4px auto 0; text-align: center; }
+.howto b { color: var(--cream); }
+
+/* Prompt */
+.prompt {
+  background: rgba(74,38,32,.55); border: 1px solid rgba(241,233,220,.18); border-radius: 18px;
+  padding: 16px 18px; display: flex; flex-direction: column; gap: 6px;
+}
+.prompt .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; color: var(--butter); text-transform: uppercase; }
+.prompt h2 { font-family: var(--display); font-weight: 400; font-size: clamp(24px, 6.4vw, 30px); line-height: 1.12; margin: 0; text-wrap: balance; }
+.prompt .hint { font-size: 13px; color: var(--muted); }
+
+.answer { display: flex; gap: 10px; align-items: center; }
+.timer { flex: none; width: 48px; height: 48px; position: relative; }
+.timer svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.timer span { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--mono); font-size: 15px; color: var(--butter); font-variant-numeric: tabular-nums; }
+.answer input {
+  flex: 1; min-width: 0; height: 48px; border-radius: 14px; border: 1.5px solid rgba(241,233,220,.35);
+  background: rgba(255,250,240,.07); color: var(--glaze); padding: 0 14px; font: 500 17px var(--body);
+}
+.answer input::placeholder { color: rgba(241,233,220,.45); }
+.answer .go {
+  flex: none; height: 48px; padding: 0 18px; border-radius: 14px; border: 0;
+  background: var(--butter); color: var(--cinnamon-deep); font-weight: 700; letter-spacing: .06em;
+}
+.answer .go:disabled { opacity: .45; cursor: default; }
+
+/* Verdict card */
+.verdict {
+  text-align: center; border-radius: 18px; padding: 20px 18px 18px;
+  background: rgba(74,38,32,.7); border: 1px solid rgba(241,233,220,.2);
+  display: flex; flex-direction: column; gap: 6px; align-items: center;
+  animation: rise .45s cubic-bezier(.2,.9,.3,1.3);
+}
+.verdict .tier { font-family: var(--mono); font-weight: 500; font-size: 22px; letter-spacing: .22em; text-transform: uppercase; margin: 0; }
+.verdict .said { font-family: var(--display); font-size: 22px; margin: 0; overflow-wrap: anywhere; }
+.verdict .pts { font-family: var(--mono); font-size: 14px; color: var(--cream); }
+.verdict .blurb { font-size: 14px; color: var(--muted); margin: 0; max-width: 36ch; }
+.verdict.legend { background: var(--glaze); color: var(--cinnamon-deep); border-color: var(--butter); box-shadow: 0 0 0 4px rgba(246,215,123,.35), 0 20px 50px rgba(0,0,0,.35); }
+.verdict.legend .pts, .verdict.legend .blurb { color: var(--cinnamon); }
+@keyframes rise { from { transform: translateY(14px) scale(.96); opacity: .3; } to { transform: none; opacity: 1; } }
+
+/* Event card */
+.event {
+  background: var(--glaze); color: var(--cinnamon-deep); border-radius: 22px; padding: 22px 20px;
+  display: flex; flex-direction: column; gap: 12px; text-align: left;
+}
+.event .org { align-self: flex-start; font-family: var(--display); font-size: 14px; border: 1px solid var(--cinnamon); border-radius: 50%; padding: 6px 16px; }
+.event h3 { font-family: var(--display); font-weight: 400; font-size: 34px; line-height: 1; margin: 0; }
+.event h3 em { font-family: var(--script); font-style: normal; font-size: 48px; line-height: .6; }
+.event dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; font-size: 15px; }
+.event dt { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--crust); padding-top: 3px; }
+.event dd { margin: 0; font-weight: 600; }
+.event .price { font-family: var(--display); font-size: 40px; line-height: 1; color: var(--crust); }
+
+.results { display: flex; flex-direction: column; gap: 14px; }
+.results .score { text-align: center; }
+.results .score small { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; color: var(--muted); }
+.results .score b { display: block; font-family: var(--display); font-weight: 400; font-size: 64px; line-height: 1; color: var(--butter); }
+.trail { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.trail li { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: baseline; padding: 10px 14px; border-radius: 12px; background: rgba(74,38,32,.5); }
+.trail .a { font-weight: 600; overflow-wrap: anywhere; min-width: 0; }
+.trail .q { display: block; font-size: 12px; color: var(--muted); font-weight: 400; }
+.trail .t { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+.row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.toast { text-align: center; font-size: 13px; color: var(--butter); min-height: 1.2em; margin: 0; }
+.share-text { width: 100%; font: 13px var(--mono); background: rgba(255,250,240,.07); color: var(--cream); border: 1px solid rgba(241,233,220,.3); border-radius: 10px; padding: 10px; resize: none; }
+
+.foot { margin-top: auto; text-align: center; font-family: var(--mono); font-size: 10px; letter-spacing: .16em; color: rgba(241,233,220,.5); text-transform: uppercase; }
+
+@media (prefers-reduced-motion: reduce) {
+  .verdict { animation: none; }
+  .cta { transition: none; }
+}
+</style>
+
+<div class="app">
+  <div class="hud" id="hud" hidden>
+    <div class="stat"><small>Swirl depth</small><b id="depth">0%</b></div>
+    <span class="chip" id="step">Prompt 1 of 3</span>
+    <div class="stat"><small>Score</small><b id="score">0</b></div>
+  </div>
+
+  <div class="board"><canvas id="bun" aria-label="Top-down cinnamon bun; your marker rolls toward the centre as you score"></canvas></div>
+
+  <!-- Title screen -->
+  <section class="title" id="screen-title">
+    <p class="flourish">One in a</p>
+    <h1>Cinnamillion</h1>
+    <p class="rules">3 prompts · 20 seconds each · rarer answers roll deeper</p>
+    <p class="howto">Type one answer per prompt. <b>Common answers</b> barely dent the dough. <b>Rare answers</b> roll you deep into the swirl. Can you reach the centre?</p>
+    <div class="row" style="margin-top:14px"><button class="cta" id="start" type="button">Roll in ↻</button></div>
+  </section>
+
+  <!-- Prompt screen -->
+  <section id="screen-play" hidden>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="prompt">
+        <span class="eyebrow" id="p-eyebrow">Prompt 1 of 3</span>
+        <h2 id="p-text">Name a delicious pastry.</h2>
+        <span class="hint">↻ rarer answers roll deeper</span>
+      </div>
+      <form class="answer" id="answer-form" autocomplete="off">
+        <div class="timer" aria-hidden="true">
+          <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="none" stroke="rgba(241,233,220,.18)" stroke-width="3"/><circle id="ring" cx="24" cy="24" r="21" fill="none" stroke="#f6d77b" stroke-width="3" stroke-linecap="round" stroke-dasharray="131.95" stroke-dashoffset="0"/></svg>
+          <span id="secs">20</span>
+        </div>
+        <label for="answer" class="visually-hidden" style="position:absolute;left:-9999px">Your answer</label>
+        <input id="answer" type="text" maxlength="40" placeholder="type one answer…" enterkeyhint="go">
+        <button class="go" id="go" type="submit" disabled>ROLL</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Verdict screen -->
+  <section id="screen-verdict" hidden>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="verdict" id="verdict"></div>
+      <div class="row"><button class="cta" id="next" type="button">Next prompt →</button></div>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section class="results" id="screen-results" hidden>
+    <div class="score"><small>FINAL SCORE</small><b id="final-score">0</b></div>
+    <article class="event" aria-label="Event details">
+      <span class="org">UBC MISA</span>
+      <h3><em>C</em>innamon Bun Bake Sale</h3>
+      <dl>
+        <dt>When</dt><dd>Tuesday, Nov 17 · 10:00 AM – 4:00 PM</dd>
+        <dt>Where</dt><dd>In front of Abdul Ladha</dd>
+        <dt>What</dt><dd>Cobbs cinnamon buns</dd>
+      </dl>
+      <div class="price">$3</div>
+    </article>
+    <ol class="trail" id="trail"></ol>
+    <textarea class="share-text" id="share-text" rows="6" readonly aria-label="Shareable result"></textarea>
+    <div class="row">
+      <button class="cta" id="copy" type="button">Copy my result</button>
+      <button class="ghost" id="again" type="button">Play again</button>
+    </div>
+    <p class="toast" id="toast" aria-live="polite"></p>
+  </section>
+
+  <p class="foot">UBC MISA · Cinnamon Bun Bake Sale · Nov 17</p>
+</div>
+
+<script>
+(() => {
+  // ---------- Content ----------
+  const SALE = "MISA Cinnamon Bun Sale";
+  const PROMPTS = [
+    {
+      text: "Name a delicious pastry.",
+      common: ["croissant","donut","doughnut","muffin","cinnamon roll","cinnamon bun","danish","cupcake","cookie","brownie","pie","cake","scone","bagel","tart"],
+      uncommon: ["eclair","macaron","macaroon","churro","pain au chocolat","chocolate croissant","turnover","strudel","cheesecake","puff pastry","bear claw","cream puff","profiterole","apple pie","pop tart","bun"],
+      deep: ["baklava","kouign","cannoli","mille","napoleon","nata","egg tart","palmier","sfogliatell","cronut","beignet","kanelbulle","rugelach","babka","madeleine","kolache","pastizz","paczki","mooncake","pineapple bun","melonpan","conchas","concha","ensaymada","ensaimada","hotteok","taiyaki","gulab","jalebi","sfenj","kardemummabulle","semla","pithivier","kanafeh","knafeh","bougatsa","galette","kifli","hamantasch"]
+    },
+    {
+      text: "Name something to put on top of a cinnamon bun.",
+      common: ["icing","frosting","cream cheese","glaze","sugar","cinnamon","butter","nothing"],
+      uncommon: ["caramel","pecan","walnut","raisin","chocolate","nut","sprinkle","whipped cream","maple","ice cream","syrup","nutella","peanut butter","almond","jam","vanilla"],
+      deep: ["cardamom","brown butter","miso","matcha","ube","bacon","tahini","pistachio","orange zest","zest","honey","biscoff","speculoos","dulce","salt","halva","rose","chai","saffron","black sesame","yuzu","lavender","condensed milk","coffee","espresso","pumpkin","gochujang","cheddar","fig","date","pandan"]
+    },
+    {
+      text: "Name a place to buy a cinnamon bun at UBC.",
+      finale: true
+    }
+  ];
+
+  const TIERS = {
+    plain:  { name: "Plain dough",      pts: 10,  roll: 0.06, color: "#d9c3ae", blurb: "Everyone said that one. Still tasty." },
+    dusted: { name: "Cinnamon dusted",  pts: 30,  roll: 0.14, color: "#e8a35f", blurb: "A little less obvious. Nice." },
+    glazed: { name: "Glazed",           pts: 60,  roll: 0.22, color: "#f1e9dc", blurb: "Genuinely uncommon. Good roll." },
+    swirl:  { name: "Centre swirl",     pts: 85,  roll: 0.30, color: "#f6d77b", blurb: "True obscurity. Few roll this deep." },
+    burnt:  { name: "Overproofed",      pts: 0,   roll: 0,    color: "#d9c3ae", blurb: "The timer ran out. The dough sat too long." },
+    legend: { name: "One in a cinnamillion", pts: 100, roll: 1, color: "#6a3b30", blurb: "" }
+  };
+
+  const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z ]/g, " ").replace(/\s+/g, " ").trim();
+  const hit = (a, list) => list.some(k => a.includes(k));
+
+  function judge(p, raw) {
+    const a = norm(raw);
+    if (!a) return "burnt";
+    if (hit(a, p.deep)) return "swirl";
+    if (hit(a, p.common)) return "plain";
+    if (hit(a, p.uncommon)) return "dusted";
+    return "glazed";
+  }
+
+  // ---------- State ----------
+  let idx = 0, score = 0, progress = 0, shown = 0, trail = [];
+  let timer = null, deadline = 0;
+  const TIME = 20;
+
+  const $ = id => document.getElementById(id);
+  const screens = ["title","play","verdict","results"];
+  function show(name) {
+    screens.forEach(s => $("screen-" + s).hidden = s !== name);
+    $("hud").hidden = name === "title";
+  }
+
+  function hud() {
+    $("score").textContent = score;
+    $("step").textContent = idx < PROMPTS.length ? `Prompt ${idx + 1} of ${PROMPTS.length}` : "Done";
+  }
+
+  function startGame() {
+    idx = 0; score = 0; progress = 0; trail = [];
+    hud(); askPrompt();
+  }
+
+  function askPrompt() {
+    const p = PROMPTS[idx];
+    $("p-eyebrow").textContent = `Prompt ${idx + 1} of ${PROMPTS.length}`;
+    $("p-text").textContent = p.text;
+    $("answer").value = ""; $("go").disabled = true;
+    hud(); show("play");
+    setTimeout(() => $("answer").focus(), 60);
+    deadline = performance.now() + TIME * 1000;
+    clearInterval(timer);
+    timer = setInterval(tick, 100); tick();
+  }
+
+  function tick() {
+    const left = Math.max(0, deadline - performance.now()) / 1000;
+    $("secs").textContent = Math.ceil(left);
+    $("ring").setAttribute("stroke-dashoffset", (131.95 * (1 - left / TIME)).toFixed(2));
+    if (left <= 0) submit(true);
+  }
+
+  function submit(timeout) {
+    clearInterval(timer);
+    const p = PROMPTS[idx];
+    const raw = $("answer").value.trim();
+    let tierKey = p.finale ? "legend" : (timeout && !raw ? "burnt" : judge(p, raw));
+    const t = TIERS[tierKey];
+    score += t.pts;
+    progress = tierKey === "legend" ? 1 : Math.min(0.85, progress + t.roll);
+    trail.push({ q: p.text, a: raw || "—", tier: tierKey });
+    renderVerdict(tierKey, raw, p);
+    hud();
+    if (tierKey === "legend") burst();
+    show("verdict");
+    $("next").textContent = idx === PROMPTS.length - 1 ? "See where to get it →" : "Next prompt →";
+    $("next").focus({ preventScroll: true });
+  }
+
+  function renderVerdict(key, raw, p) {
+    const t = TIERS[key], v = $("verdict");
+    v.className = "verdict" + (key === "legend" ? " legend" : "");
+    v.innerHTML = "";
+    const el = (tag, cls, txt, style) => { const e = document.createElement(tag); if (cls) e.className = cls; e.textContent = txt; if (style) e.style.cssText = style; v.appendChild(e); return e; };
+    if (key === "legend") {
+      el("p", "pts", raw ? `You said “${raw}”. The one-in-a-cinnamillion answer:` : "The one-in-a-cinnamillion answer:");
+      el("p", "tier", t.name, "color:#c77a3a;font-size:18px");
+      el("p", "said", `“${SALE}”`, "font-size:28px");
+      el("p", "pts", `+${t.pts} PTS · rolled to the centre`);
+      el("p", "blurb", "Tuesday, Nov 17 · 10 AM – 4 PM · in front of Abdul Ladha · $3 Cobbs cinnamon buns.");
+    } else {
+      el("p", "tier", t.name, `color:${t.color}`);
+      el("p", "said", raw ? `“${raw}”` : "No answer");
+      el("p", "pts", `+${t.pts} PTS · rolled ${Math.round(t.roll * 100)}% deeper`);
+      el("p", "blurb", t.blurb);
+    }
+  }
+
+  function next() {
+    idx++;
+    if (idx < PROMPTS.length) askPrompt();
+    else showResults();
+  }
+
+  const EMOJI = { plain: "🟫", dusted: "🟧", glazed: "⬜", swirl: "🌀", burnt: "⬛", legend: "⭐" };
+  function showResults() {
+    hud();
+    $("final-score").textContent = score;
+    const ol = $("trail"); ol.innerHTML = "";
+    trail.forEach(r => {
+      const li = document.createElement("li");
+      const a = document.createElement("span"); a.className = "a"; a.textContent = r.tier === "legend" ? SALE : r.a;
+      const q = document.createElement("span"); q.className = "q"; q.textContent = r.q; a.prepend(q);
+      const t = document.createElement("span"); t.className = "t"; t.textContent = TIERS[r.tier].name; t.style.color = r.tier === "legend" ? "#f6d77b" : TIERS[r.tier].color;
+      li.append(a, t); ol.appendChild(li);
+    });
+    $("share-text").value = `One in a Cinnamillion — ${score} pts\n${trail.map(r => EMOJI[r.tier]).join(" ")}\nI rolled all the way to the centre: the MISA Cinnamon Bun Sale.\nTue Nov 17 · 10–4 · in front of Abdul Ladha · $3`;
+    $("toast").textContent = "";
+    show("results");
+  }
+
+  async function copy() {
+    const ta = $("share-text");
+    try { await navigator.clipboard.writeText(ta.value); $("toast").textContent = "Copied. Paste it in your group chat."; }
+    catch { ta.focus(); ta.select(); $("toast").textContent = "Text selected. Copy it to share."; }
+  }
+
+  $("start").addEventListener("click", startGame);
+  $("again").addEventListener("click", startGame);
+  $("next").addEventListener("click", next);
+  $("copy").addEventListener("click", copy);
+  $("answer").addEventListener("input", e => { $("go").disabled = !e.target.value.trim(); });
+  $("answer-form").addEventListener("submit", e => { e.preventDefault(); if ($("answer").value.trim()) submit(false); });
+
+  // ---------- The bun ----------
+  const cv = $("bun"), ctx = cv.getContext("2d");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let W = 0, rot = 0, sparks = [];
+  const TURNS = 3.6, N = 600;
+
+  function size() {
+    const r = cv.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2);
+    W = r.width; cv.width = W * d; cv.height = W * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+  }
+  addEventListener("resize", size); size();
+
+  function pt(t, R) {
+    const th = t * TURNS * Math.PI * 2;
+    const r = R * (0.9 * (1 - t) + 0.02);
+    return [Math.cos(th) * r, Math.sin(th) * r];
+  }
+
+  function path(t0, t1, R) {
+    ctx.beginPath();
+    const steps = Math.max(2, Math.round(N * (t1 - t0)));
+    for (let i = 0; i <= steps; i++) {
+      const [x, y] = pt(t0 + (t1 - t0) * i / steps, R);
+      i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+  }
+
+  function burst() {
+    for (let i = 0; i < 70; i++) {
+      const a = Math.random() * Math.PI * 2, s = 1 + Math.random() * 4;
+      sparks.push({ x: 0, y: 0, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, c: Math.random() < .5 ? "#f6d77b" : "#fffaf0" });
+    }
+  }
+
+  function draw() {
+    const R = W * 0.46;
+    shown += (progress - shown) * (reduce ? 1 : 0.06);
+    $("depth").textContent = Math.round(shown * 100) + "%";
+    ctx.clearRect(0, 0, W, W);
+    ctx.save(); ctx.translate(W / 2, W / 2);
+
+    // shadow + dough
+    ctx.beginPath(); ctx.arc(0, R * 0.06, R * 1.02, 0, 7);
+    ctx.fillStyle = "rgba(40,18,14,.45)"; ctx.fill();
+    const g = ctx.createRadialGradient(-R * .3, -R * .35, R * .1, 0, 0, R);
+    g.addColorStop(0, "#f0b26a"); g.addColorStop(.6, "#d48a45"); g.addColorStop(1, "#a85f2c");
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, 7); ctx.fillStyle = g; ctx.fill();
+
+    ctx.rotate(rot);
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    // cinnamon groove
+    path(0, 1, R); ctx.strokeStyle = "#5a2e1e"; ctx.lineWidth = R * 0.075; ctx.stroke();
+    path(0, 1, R); ctx.strokeStyle = "#8a4a2a"; ctx.lineWidth = R * 0.035; ctx.stroke();
+    // cinnamon speckle
+    ctx.fillStyle = "rgba(90,46,30,.5)";
+    for (let i = 0; i < 90; i++) {
+      const [x, y] = pt((i * 0.618) % 1, R);
+      ctx.fillRect(x + Math.sin(i * 7) * R * .06, y + Math.cos(i * 5) * R * .06, 1.6, 1.6);
+    }
+    // glaze trail = how far you've rolled
+    if (shown > 0.002) {
+      ctx.shadowColor = "rgba(255,250,240,.7)"; ctx.shadowBlur = 12;
+      path(0, shown, R); ctx.strokeStyle = "#fffaf0"; ctx.lineWidth = R * 0.06; ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+    // marker
+    const [mx, my] = pt(shown, R);
+    ctx.beginPath(); ctx.arc(mx, my, R * 0.07, 0, 7);
+    ctx.fillStyle = "#f6d77b"; ctx.shadowColor = "#f6d77b"; ctx.shadowBlur = 18; ctx.fill(); ctx.shadowBlur = 0;
+    ctx.lineWidth = 2; ctx.strokeStyle = "#4a2620"; ctx.stroke();
+    ctx.restore();
+
+    // sparks
+    ctx.save(); ctx.translate(W / 2, W / 2);
+    sparks = sparks.filter(s => (s.life -= 0.012) > 0);
+    sparks.forEach(s => { s.x += s.vx; s.y += s.vy; s.vy += 0.03; ctx.globalAlpha = s.life; ctx.fillStyle = s.c; ctx.fillRect(s.x, s.y, 3, 3); });
+    ctx.restore(); ctx.globalAlpha = 1;
+
+    if (!reduce) rot += 0.0025;
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+</script>
