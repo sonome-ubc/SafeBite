@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>One in a Cinnamillion</title>
+<title>Swirl Daily Roll</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,9 +28,9 @@
 [hidden] { display: none !important; }
 html, body { height: 100%; }
 body {
+  min-height: 100%;
   background: var(--cinnamon);
   background-image: radial-gradient(120% 70% at 50% 0%, #7a4538 0%, var(--cinnamon) 55%, var(--cinnamon-deep) 100%);
-  background-attachment: fixed;
   color: var(--cream);
   font-family: var(--body);
   font-size: 16px;
@@ -140,6 +140,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
 .event dd { margin: 0; font-weight: 600; }
 .event .price { font-family: var(--display); font-size: 40px; line-height: 1; color: var(--crust); }
 
+.find { margin: 6px 0 -4px; text-align: center; font-family: var(--mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--butter); }
 .results { display: flex; flex-direction: column; gap: 14px; }
 .results .score { text-align: center; }
 .results .score small { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; color: var(--muted); }
@@ -166,7 +167,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
 <div class="app">
   <div class="hud" id="hud" hidden>
     <div class="stat"><small>Swirl depth</small><b id="depth">0%</b></div>
-    <span class="chip" id="step">Prompt 1 of 3</span>
+    <span class="chip" id="step">Prompt 1 of 5</span>
     <div class="stat"><small>Score</small><b id="score">0</b></div>
   </div>
 
@@ -174,9 +175,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
 
   <!-- Title screen -->
   <section class="title" id="screen-title">
-    <p class="flourish">One in a</p>
-    <h1>Cinnamillion</h1>
-    <p class="rules">3 prompts · 20 seconds each · rarer answers roll deeper</p>
+    <p class="flourish">the daily</p>
+    <h1>Swirl</h1>
+    <p class="rules">5 prompts · 20 seconds each · rarer answers roll deeper</p>
     <p class="howto">Type one answer per prompt. <b>Common answers</b> barely dent the dough. <b>Rare answers</b> roll you deep into the swirl. Can you reach the centre?</p>
     <div class="row" style="margin-top:14px"><button class="cta" id="start" type="button">Roll in ↻</button></div>
   </section>
@@ -185,8 +186,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
   <section id="screen-play" hidden>
     <div style="display:flex;flex-direction:column;gap:12px">
       <div class="prompt">
-        <span class="eyebrow" id="p-eyebrow">Prompt 1 of 3</span>
-        <h2 id="p-text">Name a delicious pastry.</h2>
+        <span class="eyebrow" id="p-eyebrow">Prompt 1 of 5</span>
+        <h2 id="p-text">Name something that's round.</h2>
         <span class="hint">↻ rarer answers roll deeper</span>
       </div>
       <form class="answer" id="answer-form" autocomplete="off">
@@ -212,6 +213,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
   <!-- Results -->
   <section class="results" id="screen-results" hidden>
     <div class="score"><small>FINAL SCORE</small><b id="final-score">0</b></div>
+    <ol class="trail" id="trail"></ol>
+    <p class="find">Your one-in-a-cinnamillion find</p>
     <article class="event" aria-label="Event details">
       <span class="org">UBC MISA</span>
       <h3><em>C</em>innamon Bun Bake Sale</h3>
@@ -222,7 +225,6 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
       </dl>
       <div class="price">$3</div>
     </article>
-    <ol class="trail" id="trail"></ol>
     <textarea class="share-text" id="share-text" rows="6" readonly aria-label="Shareable result"></textarea>
     <div class="row">
       <button class="cta" id="copy" type="button">Copy my result</button>
@@ -231,7 +233,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
     <p class="toast" id="toast" aria-live="polite"></p>
   </section>
 
-  <p class="foot">UBC MISA · Cinnamon Bun Bake Sale · Nov 17</p>
+  <p class="foot" id="foot">Daily roll · rarer answers roll deeper</p>
 </div>
 
 <script>
@@ -240,30 +242,42 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
   const SALE = "MISA Cinnamon Bun Sale";
   const PROMPTS = [
     {
-      text: "Name a delicious pastry.",
-      common: ["croissant","donut","doughnut","muffin","cinnamon roll","cinnamon bun","danish","cupcake","cookie","brownie","pie","cake","scone","bagel","tart"],
-      uncommon: ["eclair","macaron","macaroon","churro","pain au chocolat","chocolate croissant","turnover","strudel","cheesecake","puff pastry","bear claw","cream puff","profiterole","apple pie","pop tart","bun"],
-      deep: ["baklava","kouign","cannoli","mille","napoleon","nata","egg tart","palmier","sfogliatell","cronut","beignet","kanelbulle","rugelach","babka","madeleine","kolache","pastizz","paczki","mooncake","pineapple bun","melonpan","conchas","concha","ensaymada","ensaimada","hotteok","taiyaki","gulab","jalebi","sfenj","kardemummabulle","semla","pithivier","kanafeh","knafeh","bougatsa","galette","kifli","hamantasch"]
+      text: "Name something that's round.",
+      common: ["ball","sun","moon","pizza","orange","coin","plate","wheel","earth","globe","circle","cookie","clock","donut","doughnut","apple","basketball","soccer"],
+      uncommon: ["bagel","tire","button","pearl","planet","eye","bubble","frisbee","record","vinyl","pancake","cd","marble","grape","pie","ring","bowl","balloon","egg"],
+      deep: ["cinnamon","bun","lifesaver","manhole","halo","zero","tortilla","porthole","hula","tambourine","yo yo","yoyo","compass","sundial","dreidel","onion ring","bao","mochi","tapioca","boba","pupil","iris","lens","wreath","gong","ferris","roundabout","peppercorn","cheese wheel","kanelbulle","snail"]
     },
     {
-      text: "Name something to put on top of a cinnamon bun.",
-      common: ["icing","frosting","cream cheese","glaze","sugar","cinnamon","butter","nothing"],
-      uncommon: ["caramel","pecan","walnut","raisin","chocolate","nut","sprinkle","whipped cream","maple","ice cream","syrup","nutella","peanut butter","almond","jam","vanilla"],
-      deep: ["cardamom","brown butter","miso","matcha","ube","bacon","tahini","pistachio","orange zest","zest","honey","biscoff","speculoos","dulce","salt","halva","rose","chai","saffron","black sesame","yuzu","lavender","condensed milk","coffee","espresso","pumpkin","gochujang","cheddar","fig","date","pandan"]
+      text: "Name a spice.",
+      common: ["cinnamon","pepper","salt","paprika","cumin","garlic","ginger","chili","chilli","oregano","basil"],
+      uncommon: ["turmeric","nutmeg","cayenne","clove","curry","coriander","cardamom","thyme","rosemary","parsley","mustard","onion","vanilla","dill","sage","fennel","bay leaf","garam masala"],
+      deep: ["sumac","saffron","star anise","fenugreek","asafoetida","hing","mace","sichuan","szechuan","zaatar","za atar","allspice","berbere","grains of paradise","ajwain","galangal","juniper","long pepper","nigella","kalonji","amchur","mahleb","mahlab","annatto","achiote","sansho","shichimi","ras el hanout","baharat","dukkah","tajin","five spice","negro","aleppo","urfa","pink peppercorn","caraway"]
     },
     {
-      text: "Name a place to buy a cinnamon bun at UBC.",
+      text: "Name a sweet breakfast food.",
+      common: ["pancake","waffle","french toast","cereal","donut","doughnut","muffin","cinnamon roll","cinnamon bun","oatmeal","yogurt","yoghurt","toast"],
+      uncommon: ["crepe","granola","danish","croissant","jam","fruit","smoothie","scone","bagel","acai","parfait","banana bread","pop tart","poptart","overnight oats","chocolate"],
+      deep: ["dutch baby","kaiserschmarrn","concha","mochi","babka","kanelbulle","poffertjes","hotteok","churro","beignet","malasada","ensaymada","ensaimada","pain perdu","semolina","sheera","halwa","congee","mandazi","bibingka","puto","kolache","stroopwafel","clafoutis","blintz","aebleskiver","ebelskiver","melonpan","pastel de nata","egg tart","kouign","baklava","pandesal","tteok","sweet potato","taiyaki","dorayaki"]
+    },
+    {
+      text: "Name a place to buy a cinnamon bun.",
       finale: true
+    },
+    {
+      text: "Name a word that rhymes with \"bun.\"",
+      common: ["sun","fun","run","one","done","gun","ton","won","son","none"],
+      uncommon: ["pun","nun","spun","stun","shun","ton","hun","dun","tonne"],
+      deep: ["begun","outdone","homerun","home run","overrun","rerun","anyone","someone","everyone","undone","hon","outrun","outgun","shotgun","airgun","handgun","hot cross bun","attila","oneonone","one on one","hit and run","twenty one","number one","well done","overdone","hard won"]
     }
   ];
 
   const TIERS = {
-    plain:  { name: "Plain dough",      pts: 10,  roll: 0.06, color: "#d9c3ae", blurb: "Everyone said that one. Still tasty." },
-    dusted: { name: "Cinnamon dusted",  pts: 30,  roll: 0.14, color: "#e8a35f", blurb: "A little less obvious. Nice." },
-    glazed: { name: "Glazed",           pts: 60,  roll: 0.22, color: "#f1e9dc", blurb: "Genuinely uncommon. Good roll." },
-    swirl:  { name: "Centre swirl",     pts: 85,  roll: 0.30, color: "#f6d77b", blurb: "True obscurity. Few roll this deep." },
+    plain:  { name: "Plain dough",      pts: 10,  roll: 0.05, color: "#d9c3ae", blurb: "Everyone said that one. Still tasty." },
+    dusted: { name: "Cinnamon dusted",  pts: 30,  roll: 0.10, color: "#e8a35f", blurb: "A little less obvious. Nice." },
+    glazed: { name: "Glazed",           pts: 60,  roll: 0.15, color: "#f1e9dc", blurb: "Genuinely uncommon. Good roll." },
+    swirl:  { name: "Centre swirl",     pts: 85,  roll: 0.20, color: "#f6d77b", blurb: "True obscurity. Few roll this deep." },
     burnt:  { name: "Overproofed",      pts: 0,   roll: 0,    color: "#d9c3ae", blurb: "The timer ran out. The dough sat too long." },
-    legend: { name: "One in a cinnamillion", pts: 100, roll: 1, color: "#6a3b30", blurb: "" }
+    legend: { name: "One in a cinnamillion", pts: 100, roll: 0.35, color: "#6a3b30", blurb: "" }
   };
 
   const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z ]/g, " ").replace(/\s+/g, " ").trim();
@@ -284,6 +298,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
   const TIME = 20;
 
   const $ = id => document.getElementById(id);
+  const DAY = "#" + (Math.floor((Date.now() - Date.UTC(2026, 9, 1)) / 864e5) + 1);
+  $("foot").textContent = `Daily roll ${DAY} · rarer answers roll deeper`;
   const screens = ["title","play","verdict","results"];
   function show(name) {
     screens.forEach(s => $("screen-" + s).hidden = s !== name);
@@ -326,13 +342,13 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
     let tierKey = p.finale ? "legend" : (timeout && !raw ? "burnt" : judge(p, raw));
     const t = TIERS[tierKey];
     score += t.pts;
-    progress = tierKey === "legend" ? 1 : Math.min(0.85, progress + t.roll);
+    progress = Math.min(1, progress + t.roll);
     trail.push({ q: p.text, a: raw || "—", tier: tierKey });
     renderVerdict(tierKey, raw, p);
     hud();
     if (tierKey === "legend") burst();
     show("verdict");
-    $("next").textContent = idx === PROMPTS.length - 1 ? "See where to get it →" : "Next prompt →";
+    $("next").textContent = idx === PROMPTS.length - 1 ? "See results →" : "Next prompt →";
     $("next").focus({ preventScroll: true });
   }
 
@@ -345,8 +361,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
       el("p", "pts", raw ? `You said “${raw}”. The one-in-a-cinnamillion answer:` : "The one-in-a-cinnamillion answer:");
       el("p", "tier", t.name, "color:#c77a3a;font-size:18px");
       el("p", "said", `“${SALE}”`, "font-size:28px");
-      el("p", "pts", `+${t.pts} PTS · rolled to the centre`);
-      el("p", "blurb", "Tuesday, Nov 17 · 10 AM – 4 PM · in front of Abdul Ladha · $3 Cobbs cinnamon buns.");
+      el("p", "pts", `+${t.pts} PTS · rolled ${Math.round(t.roll * 100)}% deeper`);
+      el("p", "blurb", "Real life, this Tuesday, Nov 17 · 10 AM – 4 PM · in front of Abdul Ladha · $3 Cobbs cinnamon buns.");
     } else {
       el("p", "tier", t.name, `color:${t.color}`);
       el("p", "said", raw ? `“${raw}”` : "No answer");
@@ -373,7 +389,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
       const t = document.createElement("span"); t.className = "t"; t.textContent = TIERS[r.tier].name; t.style.color = r.tier === "legend" ? "#f6d77b" : TIERS[r.tier].color;
       li.append(a, t); ol.appendChild(li);
     });
-    $("share-text").value = `One in a Cinnamillion — ${score} pts\n${trail.map(r => EMOJI[r.tier]).join(" ")}\nI rolled all the way to the centre: the MISA Cinnamon Bun Sale.\nTue Nov 17 · 10–4 · in front of Abdul Ladha · $3`;
+    const link = /^https?:/.test(location.href) ? "\n" + location.href.split("#")[0] : "";
+    $("share-text").value = `Swirl ${DAY} · ${score} pts · ${Math.round(progress * 100)}% deep\n${trail.map(r => EMOJI[r.tier]).join(" ")}\nFound a one in a cinnamillion.` + link;
     $("toast").textContent = "";
     show("results");
   }
