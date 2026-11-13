@@ -1,217 +1,183 @@
-<title>Swirl Daily Roll</title>
+<title>Fathom Deep</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Pinyon+Script&family=Figtree:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Figtree:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: one phone-width column; a top-down cinnamon bun is the board, and every answer rolls you further into its swirl. */
+/* Layout: a full-screen ocean canvas; a bathysphere hangs near the top and the UI floats below it. Each answer lowers the sphere through the real ocean zones. */
 :root {
-  --cinnamon: #6a3b30;      /* poster brown */
-  --cinnamon-deep: #4a2620;
-  --crust: #c77a3a;
-  --cream: #f1e9dc;
-  --glaze: #fffaf0;
-  --butter: #f6d77b;
-  --muted: #d9c3ae;
-  --display: "Gloock", "Georgia", serif;
-  --script: "Pinyon Script", "Snell Roundhand", cursive;
+  --abyss: #04111f;
+  --panel: rgba(4, 17, 31, .72);
+  --line: rgba(160, 220, 230, .22);
+  --foam: #e9f6f3;
+  --mist: #9fc3cc;
+  --glow: #6ef2e0;     /* bioluminescence */
+  --amber: #ffcf7a;    /* the sphere's lamp, and the treasure */
+  --display: "Instrument Serif", "Georgia", serif;
   --body: "Figtree", system-ui, sans-serif;
-  --mono: "DM Mono", ui-monospace, monospace;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html, body { height: 100%; }
-body {
-  min-height: 100%;
-  background: var(--cinnamon);
-  background-image: radial-gradient(120% 70% at 50% 0%, #7a4538 0%, var(--cinnamon) 55%, var(--cinnamon-deep) 100%);
-  color: var(--cream);
-  font-family: var(--body);
-  font-size: 16px;
-  -webkit-font-smoothing: antialiased;
-}
+body { background: var(--abyss); color: var(--foam); font-family: var(--body); font-size: 16px; -webkit-font-smoothing: antialiased; }
+#sea { position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--glow); outline-offset: 3px; }
+
 .app {
-  max-width: 560px;
-  min-height: 100%;
-  margin: 0 auto;
+  position: relative; z-index: 1;
+  max-width: 540px; min-height: 100%; margin: 0 auto;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 18px 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  padding-block: 14px 24px;
+  display: flex; flex-direction: column; gap: 12px;
 }
-button { font: inherit; color: inherit; cursor: pointer; }
-button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); outline-offset: 3px; }
+.stage { flex: 0 0 auto; height: 34svh; min-height: 190px; }
 
 /* HUD */
-.hud { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.chip {
-  font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
-  border: 1px solid rgba(241,233,220,.28); border-radius: 999px; padding: 5px 12px;
-}
-.stat { display: flex; flex-direction: column; gap: 2px; min-width: 76px; }
-.stat:last-child { text-align: right; }
-.stat small { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; color: var(--muted); text-transform: uppercase; }
-.stat b { font-family: var(--mono); font-weight: 500; font-size: 20px; font-variant-numeric: tabular-nums; color: var(--butter); }
-.hud[hidden] { display: none !important; }
+.hud { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: 10px; }
+.gauge { display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(6px); justify-self: start; }
+.gauge.r { text-align: right; justify-self: end; }
+.gauge small { font-family: var(--mono); font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--mist); }
+.gauge b { white-space: nowrap; font-family: var(--mono); font-weight: 500; font-size: 19px; font-variant-numeric: tabular-nums; color: var(--glow); }
+.gauge em { font-style: normal; font-size: 11px; color: var(--mist); }
+.chip { justify-self: center; font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; padding: 6px 12px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); white-space: nowrap; }
 
-/* Board */
-.board { position: relative; width: min(100%, 400px); aspect-ratio: 1; max-width: 100%; margin: 0 auto; }
-.board canvas { width: 100%; height: 100%; display: block; }
-
-/* Title screen */
-.title { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.title .flourish { font-family: var(--script); font-size: clamp(54px, 15vw, 84px); line-height: .8; color: var(--cream); margin: 0; }
-.title h1 {
-  font-family: var(--display); font-weight: 400; margin: 0; line-height: .95;
-  font-size: clamp(40px, 11.5vw, 64px); letter-spacing: -.01em; text-wrap: balance;
-}
-.title .rules { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; color: var(--muted); margin: 10px 0 0; }
+/* Title */
+.title { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 14px; }
+.title .kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--glow); margin: 0; }
+.title h1 { font-family: var(--display); font-weight: 400; font-size: clamp(76px, 24vw, 120px); line-height: .9; margin: 0; letter-spacing: -.02em; }
+.title h1 i { color: var(--glow); }
+.title .rules { font-family: var(--mono); font-size: 12px; color: var(--mist); margin: 8px 0 0; }
+.howto { font-size: 15px; line-height: 1.55; color: var(--mist); max-width: 38ch; margin: 6px auto 0; }
+.howto b { color: var(--foam); font-weight: 600; }
+.zones { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.zones li { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; padding: 4px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--mist); background: var(--panel); }
 .cta {
-  border: 0; border-radius: 999px; background: var(--butter); color: var(--cinnamon-deep);
-  font-weight: 700; font-size: 17px; letter-spacing: .04em; padding: 15px 34px;
-  box-shadow: 0 6px 0 #c9a54a, 0 12px 24px rgba(0,0,0,.25);
-  transition: transform .12s ease, box-shadow .12s ease;
+  border: 0; border-radius: 999px; background: var(--glow); color: var(--abyss);
+  font-weight: 700; font-size: 17px; letter-spacing: .03em; padding: 15px 34px;
+  box-shadow: 0 0 0 6px rgba(110,242,224,.14), 0 0 40px rgba(110,242,224,.35);
+  transition: transform .12s ease, box-shadow .2s ease;
 }
-.cta:active { transform: translateY(4px); box-shadow: 0 2px 0 #c9a54a, 0 6px 14px rgba(0,0,0,.25); }
-.ghost {
-  background: transparent; border: 1px solid rgba(241,233,220,.35); border-radius: 999px;
-  padding: 11px 22px; font-size: 14px; font-weight: 600;
-}
-.howto { font-size: 14px; line-height: 1.55; color: var(--muted); max-width: 40ch; margin: 4px auto 0; text-align: center; }
-.howto b { color: var(--cream); }
+.cta:hover { box-shadow: 0 0 0 8px rgba(110,242,224,.2), 0 0 56px rgba(110,242,224,.45); }
+.cta:active { transform: scale(.97); }
+.ghost { background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 14px; font-weight: 600; }
+.row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
 /* Prompt */
-.prompt {
-  background: rgba(74,38,32,.55); border: 1px solid rgba(241,233,220,.18); border-radius: 18px;
-  padding: 16px 18px; display: flex; flex-direction: column; gap: 6px;
-}
-.prompt .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; color: var(--butter); text-transform: uppercase; }
-.prompt h2 { font-family: var(--display); font-weight: 400; font-size: clamp(24px, 6.4vw, 30px); line-height: 1.12; margin: 0; text-wrap: balance; }
-.prompt .hint { font-size: 13px; color: var(--muted); }
-
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; backdrop-filter: blur(8px); display: flex; flex-direction: column; gap: 6px; }
+.eyebrow { font-family: var(--mono); font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase; color: var(--glow); }
+.card h2 { font-family: var(--display); font-weight: 400; font-size: clamp(30px, 8.4vw, 40px); line-height: 1.05; margin: 0; text-wrap: balance; }
+.hint { font-size: 13px; color: var(--mist); }
+.play { display: flex; flex-direction: column; gap: 12px; }
 .answer { display: flex; gap: 10px; align-items: center; }
 .timer { flex: none; width: 48px; height: 48px; position: relative; }
 .timer svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.timer span { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--mono); font-size: 15px; color: var(--butter); font-variant-numeric: tabular-nums; }
-.answer input {
-  flex: 1; min-width: 0; height: 48px; border-radius: 14px; border: 1.5px solid rgba(241,233,220,.35);
-  background: rgba(255,250,240,.07); color: var(--glaze); padding: 0 14px; font: 500 17px var(--body);
-}
-.answer input::placeholder { color: rgba(241,233,220,.45); }
-.answer .go {
-  flex: none; height: 48px; padding: 0 18px; border-radius: 14px; border: 0;
-  background: var(--butter); color: var(--cinnamon-deep); font-weight: 700; letter-spacing: .06em;
-}
-.answer .go:disabled { opacity: .45; cursor: default; }
+.timer span { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--mono); font-size: 15px; color: var(--glow); font-variant-numeric: tabular-nums; }
+.answer input { flex: 1; min-width: 0; height: 50px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--panel); color: var(--foam); padding: 0 14px; font: 500 17px var(--body); }
+.answer input::placeholder { color: rgba(159,195,204,.6); }
+.answer .go { flex: none; height: 50px; padding: 0 18px; border-radius: 14px; border: 0; background: var(--glow); color: var(--abyss); font-weight: 700; }
+.answer .go:disabled { opacity: .4; cursor: default; }
 
-/* Verdict card */
-.verdict {
-  text-align: center; border-radius: 18px; padding: 20px 18px 18px;
-  background: rgba(74,38,32,.7); border: 1px solid rgba(241,233,220,.2);
-  display: flex; flex-direction: column; gap: 6px; align-items: center;
-  animation: rise .45s cubic-bezier(.2,.9,.3,1.3);
-}
-.verdict .tier { font-family: var(--mono); font-weight: 500; font-size: 22px; letter-spacing: .22em; text-transform: uppercase; margin: 0; }
-.verdict .said { font-family: var(--display); font-size: 22px; margin: 0; overflow-wrap: anywhere; }
-.verdict .pts { font-family: var(--mono); font-size: 14px; color: var(--cream); }
-.verdict .blurb { font-size: 14px; color: var(--muted); margin: 0; max-width: 36ch; }
-.verdict.legend { background: var(--glaze); color: var(--cinnamon-deep); border-color: var(--butter); box-shadow: 0 0 0 4px rgba(246,215,123,.35), 0 20px 50px rgba(0,0,0,.35); }
-.verdict.legend .pts, .verdict.legend .blurb { color: var(--cinnamon); }
-@keyframes rise { from { transform: translateY(14px) scale(.96); opacity: .3; } to { transform: none; opacity: 1; } }
+/* Verdict */
+.verdict { text-align: center; align-items: center; animation: surfaceIn .5s cubic-bezier(.2,.9,.3,1.2); }
+.verdict .tier { font-family: var(--mono); font-weight: 500; font-size: 15px; letter-spacing: .26em; text-transform: uppercase; margin: 0; }
+.verdict .said { font-family: var(--display); font-size: 34px; line-height: 1.05; margin: 0; overflow-wrap: anywhere; }
+.verdict .pts { font-family: var(--mono); font-size: 13px; margin: 0; }
+.verdict .blurb { font-size: 14px; color: var(--mist); margin: 0; max-width: 36ch; }
+.verdict.legend { background: rgba(40, 26, 6, .85); border-color: var(--amber); box-shadow: 0 0 60px rgba(255,207,122,.35); }
+.verdict.legend .tier, .verdict.legend .said { color: var(--amber); }
+.verdict.legend .blurb { color: var(--foam); }
+@keyframes surfaceIn { from { transform: translateY(16px); opacity: .2; } to { transform: none; opacity: 1; } }
 
-/* Event card */
-.event {
-  background: var(--glaze); color: var(--cinnamon-deep); border-radius: 22px; padding: 22px 20px;
-  display: flex; flex-direction: column; gap: 12px; text-align: left;
-}
-.event .org { align-self: flex-start; font-family: var(--display); font-size: 14px; border: 1px solid var(--cinnamon); border-radius: 50%; padding: 6px 16px; }
-.event h3 { font-family: var(--display); font-weight: 400; font-size: 34px; line-height: 1; margin: 0; }
-.event h3 em { font-family: var(--script); font-style: normal; font-size: 48px; line-height: .6; }
-.event dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; font-size: 15px; }
-.event dt { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--crust); padding-top: 3px; }
-.event dd { margin: 0; font-weight: 600; }
-.event .price { font-family: var(--display); font-size: 40px; line-height: 1; color: var(--crust); }
-
-.find { margin: 6px 0 -4px; text-align: center; font-family: var(--mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--butter); }
-.results { display: flex; flex-direction: column; gap: 14px; }
-.results .score { text-align: center; }
-.results .score small { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; color: var(--muted); }
-.results .score b { display: block; font-family: var(--display); font-weight: 400; font-size: 64px; line-height: 1; color: var(--butter); }
+/* Results */
+.results { display: flex; flex-direction: column; gap: 12px; }
+.summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.summary .card { gap: 2px; }
+.summary small { font-family: var(--mono); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--mist); }
+.summary b { font-family: var(--display); font-weight: 400; font-size: 44px; line-height: 1; color: var(--glow); font-variant-numeric: tabular-nums; }
+.summary span { font-size: 13px; color: var(--mist); }
 .trail { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.trail li { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: baseline; padding: 10px 14px; border-radius: 12px; background: rgba(74,38,32,.5); }
+.trail li { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: baseline; padding: 10px 14px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); }
 .trail .a { font-weight: 600; overflow-wrap: anywhere; min-width: 0; }
-.trail .q { display: block; font-size: 12px; color: var(--muted); font-weight: 400; }
-.trail .t { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
-.row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-.toast { text-align: center; font-size: 13px; color: var(--butter); min-height: 1.2em; margin: 0; }
-.share-text { width: 100%; font: 13px var(--mono); background: rgba(255,250,240,.07); color: var(--cream); border: 1px solid rgba(241,233,220,.3); border-radius: 10px; padding: 10px; resize: none; }
+.trail .q { display: block; font-size: 12px; color: var(--mist); font-weight: 400; }
+.trail .t { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; text-align: right; }
+.find { margin: 6px 0 -4px; text-align: center; font-family: var(--mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--amber); }
+.event { background: #fff8ec; color: #4a2620; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 0 60px rgba(255,207,122,.3); }
+.event .org { align-self: flex-start; font-family: var(--display); font-size: 16px; border: 1px solid #6a3b30; border-radius: 50%; padding: 4px 16px; }
+.event h3 { font-family: var(--display); font-weight: 400; font-size: 36px; line-height: 1; margin: 0; }
+.event h3 i { color: #c77a3a; }
+.event dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; font-size: 15px; }
+.event dt { font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: #a8642c; padding-top: 3px; }
+.event dd { margin: 0; font-weight: 600; }
+.event .price { font-family: var(--display); font-size: 44px; line-height: 1; color: #a8642c; }
+.share-text { width: 100%; font: 13px var(--mono); background: var(--panel); color: var(--foam); border: 1px solid var(--line); border-radius: 12px; padding: 10px; resize: none; }
+.toast { text-align: center; font-size: 13px; color: var(--glow); min-height: 1.2em; margin: 0; }
+.foot { margin-top: auto; padding-top: 8px; text-align: center; font-family: var(--mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: rgba(159,195,204,.7); }
 
-.foot { margin-top: auto; text-align: center; font-family: var(--mono); font-size: 10px; letter-spacing: .16em; color: rgba(241,233,220,.5); text-transform: uppercase; }
-
-@media (prefers-reduced-motion: reduce) {
-  .verdict { animation: none; }
-  .cta { transition: none; }
-}
+@media (prefers-reduced-motion: reduce) { .verdict { animation: none; } .cta { transition: none; } }
 </style>
 
+<canvas id="sea" aria-hidden="true"></canvas>
 
 <div class="app">
   <div class="hud" id="hud" hidden>
-    <div class="stat"><small>Swirl depth</small><b id="depth">0%</b></div>
+    <div class="gauge"><small>Depth</small><b id="depth">0 m</b><em id="zone">Sunlight zone</em></div>
     <span class="chip" id="step">Prompt 1 of 5</span>
-    <div class="stat"><small>Score</small><b id="score">0</b></div>
+    <div class="gauge r"><small>Score</small><b id="score">0</b></div>
   </div>
 
-  <div class="board"><canvas id="bun" aria-label="Top-down cinnamon bun; your marker rolls toward the centre as you score"></canvas></div>
+  <div class="stage" aria-hidden="true"></div>
 
-  <!-- Title screen -->
+  <!-- Title -->
   <section class="title" id="screen-title">
-    <p class="flourish">the daily</p>
-    <h1>Swirl</h1>
-    <p class="rules">5 prompts · 20 seconds each · rarer answers roll deeper</p>
-    <p class="howto">Type one answer per prompt. <b>Common answers</b> barely dent the dough. <b>Rare answers</b> roll you deep into the swirl. Can you reach the centre?</p>
-    <div class="row" style="margin-top:14px"><button class="cta" id="start" type="button">Roll in ↻</button></div>
+    <p class="kicker">a daily word dive</p>
+    <h1>Fath<i>o</i>m</h1>
+    <p class="rules">5 prompts · 20 seconds each</p>
+    <p class="howto">Type one answer per prompt. <b>Everyone's answer</b> keeps you near the surface. <b>An answer nobody else thinks of</b> drops you into the dark. How deep can you go?</p>
+    <ul class="zones" aria-label="Ocean zones">
+      <li>Sunlight 0 m</li><li>Twilight 200 m</li><li>Midnight 1,000 m</li><li>Abyss 4,000 m</li><li>Hadal 6,000 m</li>
+    </ul>
+    <div class="row" style="margin-top:16px"><button class="cta" id="start" type="button">Start the dive</button></div>
   </section>
 
-  <!-- Prompt screen -->
-  <section id="screen-play" hidden>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <div class="prompt">
-        <span class="eyebrow" id="p-eyebrow">Prompt 1 of 5</span>
-        <h2 id="p-text">Name something that's round.</h2>
-        <span class="hint">↻ rarer answers roll deeper</span>
+  <!-- Prompt -->
+  <section class="play" id="screen-play" hidden>
+    <div class="card">
+      <span class="eyebrow" id="p-eyebrow">Prompt 1 of 5</span>
+      <h2 id="p-text">Name something that's round.</h2>
+      <span class="hint">The rarer your answer, the deeper you go.</span>
+    </div>
+    <form class="answer" id="answer-form" autocomplete="off">
+      <div class="timer" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="none" stroke="rgba(160,220,230,.2)" stroke-width="3"/><circle id="ring" cx="24" cy="24" r="21" fill="none" stroke="#6ef2e0" stroke-width="3" stroke-linecap="round" stroke-dasharray="131.95" stroke-dashoffset="0"/></svg>
+        <span id="secs">20</span>
       </div>
-      <form class="answer" id="answer-form" autocomplete="off">
-        <div class="timer" aria-hidden="true">
-          <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="none" stroke="rgba(241,233,220,.18)" stroke-width="3"/><circle id="ring" cx="24" cy="24" r="21" fill="none" stroke="#f6d77b" stroke-width="3" stroke-linecap="round" stroke-dasharray="131.95" stroke-dashoffset="0"/></svg>
-          <span id="secs">20</span>
-        </div>
-        <label for="answer" class="visually-hidden" style="position:absolute;left:-9999px">Your answer</label>
-        <input id="answer" type="text" maxlength="40" placeholder="type one answer…" enterkeyhint="go">
-        <button class="go" id="go" type="submit" disabled>ROLL</button>
-      </form>
-    </div>
+      <label for="answer" style="position:absolute;left:-9999px">Your answer</label>
+      <input id="answer" type="text" maxlength="40" placeholder="one answer…" enterkeyhint="go">
+      <button class="go" id="go" type="submit" disabled>Sink it</button>
+    </form>
   </section>
 
-  <!-- Verdict screen -->
-  <section id="screen-verdict" hidden>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <div class="verdict" id="verdict"></div>
-      <div class="row"><button class="cta" id="next" type="button">Next prompt →</button></div>
-    </div>
+  <!-- Verdict -->
+  <section class="play" id="screen-verdict" hidden>
+    <div class="card verdict" id="verdict"></div>
+    <div class="row"><button class="cta" id="next" type="button">Next prompt</button></div>
   </section>
 
   <!-- Results -->
   <section class="results" id="screen-results" hidden>
-    <div class="score"><small>FINAL SCORE</small><b id="final-score">0</b></div>
+    <div class="summary">
+      <div class="card"><small>Deepest point</small><b id="final-depth">0</b><span id="final-zone">metres</span></div>
+      <div class="card"><small>Score</small><b id="final-score">0</b><span>points</span></div>
+    </div>
     <ol class="trail" id="trail"></ol>
     <p class="find">Your one-in-a-cinnamillion find</p>
     <article class="event" aria-label="Event details">
       <span class="org">UBC MISA</span>
-      <h3><em>C</em>innamon Bun Bake Sale</h3>
+      <h3><i>Cinnamon Bun</i> Bake Sale</h3>
       <dl>
         <dt>When</dt><dd>Tuesday, Nov 17 · 10:00 AM – 4:00 PM</dd>
         <dt>Where</dt><dd>In front of Abdul Ladha</dd>
@@ -219,15 +185,15 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
       </dl>
       <div class="price">$3</div>
     </article>
-    <textarea class="share-text" id="share-text" rows="6" readonly aria-label="Shareable result"></textarea>
+    <textarea class="share-text" id="share-text" rows="5" readonly aria-label="Shareable result"></textarea>
     <div class="row">
       <button class="cta" id="copy" type="button">Copy my result</button>
-      <button class="ghost" id="again" type="button">Play again</button>
+      <button class="ghost" id="again" type="button">Dive again</button>
     </div>
     <p class="toast" id="toast" aria-live="polite"></p>
   </section>
 
-  <p class="foot" id="foot">Daily roll · rarer answers roll deeper</p>
+  <p class="foot" id="foot">Fathom · daily word dive</p>
 </div>
 
 <script>
@@ -239,13 +205,13 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
       text: "Name something that's round.",
       common: ["ball","sun","moon","pizza","orange","coin","plate","wheel","earth","globe","circle","cookie","clock","donut","doughnut","apple","basketball","soccer"],
       uncommon: ["bagel","tire","button","pearl","planet","eye","bubble","frisbee","record","vinyl","pancake","cd","marble","grape","pie","ring","bowl","balloon","egg"],
-      deep: ["cinnamon","bun","lifesaver","manhole","halo","zero","tortilla","porthole","hula","tambourine","yo yo","yoyo","compass","sundial","dreidel","onion ring","bao","mochi","tapioca","boba","pupil","iris","lens","wreath","gong","ferris","roundabout","peppercorn","cheese wheel","kanelbulle","snail"]
+      deep: ["cinnamon","bun","lifesaver","manhole","halo","zero","tortilla","porthole","hula","tambourine","yo yo","yoyo","compass","sundial","dreidel","onion ring","bao","mochi","tapioca","boba","pupil","iris","lens","wreath","gong","ferris","roundabout","peppercorn","cheese wheel","kanelbulle","snail","bathysphere","sand dollar","sea urchin","jellyfish"]
     },
     {
       text: "Name a spice.",
       common: ["cinnamon","pepper","salt","paprika","cumin","garlic","ginger","chili","chilli","oregano","basil"],
       uncommon: ["turmeric","nutmeg","cayenne","clove","curry","coriander","cardamom","thyme","rosemary","parsley","mustard","onion","vanilla","dill","sage","fennel","bay leaf","garam masala"],
-      deep: ["sumac","saffron","star anise","fenugreek","asafoetida","hing","mace","sichuan","szechuan","zaatar","za atar","allspice","berbere","grains of paradise","ajwain","galangal","juniper","long pepper","nigella","kalonji","amchur","mahleb","mahlab","annatto","achiote","sansho","shichimi","ras el hanout","baharat","dukkah","tajin","five spice","negro","aleppo","urfa","pink peppercorn","caraway"]
+      deep: ["sumac","saffron","star anise","fenugreek","asafoetida","hing","mace","sichuan","szechuan","zaatar","za atar","allspice","berbere","grains of paradise","ajwain","galangal","juniper","long pepper","nigella","kalonji","amchur","mahleb","mahlab","annatto","achiote","sansho","shichimi","ras el hanout","baharat","dukkah","tajin","five spice","aleppo","urfa","pink peppercorn","caraway"]
     },
     {
       text: "Name a sweet breakfast food.",
@@ -260,23 +226,27 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
     {
       text: "Name a word that rhymes with \"bun.\"",
       common: ["sun","fun","run","one","done","gun","ton","won","son","none"],
-      uncommon: ["pun","nun","spun","stun","shun","ton","hun","dun","tonne"],
-      deep: ["begun","outdone","homerun","home run","overrun","rerun","anyone","someone","everyone","undone","hon","outrun","outgun","shotgun","airgun","handgun","hot cross bun","attila","oneonone","one on one","hit and run","twenty one","number one","well done","overdone","hard won"]
+      uncommon: ["pun","nun","spun","stun","shun","hun","dun","tonne"],
+      deep: ["begun","outdone","homerun","home run","overrun","rerun","anyone","someone","everyone","undone","hon","outrun","outgun","shotgun","handgun","hot cross bun","one on one","hit and run","twenty one","number one","well done","overdone","hard won"]
     }
   ];
 
+  // How far each kind of answer drops the sphere, in metres.
   const TIERS = {
-    plain:  { name: "Plain dough",      pts: 10,  roll: 0.05, color: "#d9c3ae", blurb: "Everyone said that one. Still tasty." },
-    dusted: { name: "Cinnamon dusted",  pts: 30,  roll: 0.10, color: "#e8a35f", blurb: "A little less obvious. Nice." },
-    glazed: { name: "Glazed",           pts: 60,  roll: 0.15, color: "#f1e9dc", blurb: "Genuinely uncommon. Good roll." },
-    swirl:  { name: "Centre swirl",     pts: 85,  roll: 0.20, color: "#f6d77b", blurb: "True obscurity. Few roll this deep." },
-    burnt:  { name: "Overproofed",      pts: 0,   roll: 0,    color: "#d9c3ae", blurb: "The timer ran out. The dough sat too long." },
-    legend: { name: "One in a cinnamillion", pts: 100, roll: 0.35, color: "#6a3b30", blurb: "" }
+    plain:  { name: "Surface splash", pts: 10,  drop: 150,  color: "#9fc3cc", blurb: "Lots of people said that. You bob near the top." },
+    dusted: { name: "Kelp drift",     pts: 30,  drop: 450,  color: "#7fe0b0", blurb: "A little off the beaten path." },
+    glazed: { name: "Deep current",   pts: 60,  drop: 950,  color: "#6ef2e0", blurb: "Genuinely uncommon. Down you go." },
+    swirl:  { name: "Trench find",    pts: 85,  drop: 1700, color: "#b49cff", blurb: "Almost nobody goes this deep." },
+    burnt:  { name: "Lost signal",    pts: 0,   drop: 0,    color: "#9fc3cc", blurb: "Time ran out before you answered." },
+    legend: { name: "One in a cinnamillion", pts: 100, drop: 3000, color: "#ffcf7a", blurb: "" }
   };
+  const ZONES = [[0, "Sunlight zone"], [200, "Twilight zone"], [1000, "Midnight zone"], [4000, "Abyss"], [6000, "Hadal zone"]];
+  const MAX = 10935; // Challenger Deep
+  const zoneOf = d => ZONES.reduce((z, [m, n]) => d >= m ? n : z, ZONES[0][1]);
+  const fmt = n => Math.round(n).toLocaleString("en-US");
 
   const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z ]/g, " ").replace(/\s+/g, " ").trim();
   const hit = (a, list) => list.some(k => a.includes(k));
-
   function judge(p, raw) {
     const a = norm(raw);
     if (!a) return "burnt";
@@ -287,28 +257,24 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
   }
 
   // ---------- State ----------
-  let idx = 0, score = 0, progress = 0, shown = 0, trail = [];
-  let timer = null, deadline = 0;
+  let idx = 0, score = 0, depth = 0, trail = [], timer = null, deadline = 0;
   const TIME = 20;
-
   const $ = id => document.getElementById(id);
   const DAY = "#" + (Math.floor((Date.now() - Date.UTC(2026, 9, 1)) / 864e5) + 1);
-  $("foot").textContent = `Daily roll ${DAY} · rarer answers roll deeper`;
-  const screens = ["title","play","verdict","results"];
+  $("foot").textContent = `Fathom ${DAY} · daily word dive`;
+
+  const screens = ["title", "play", "verdict", "results"];
   function show(name) {
     screens.forEach(s => $("screen-" + s).hidden = s !== name);
     $("hud").hidden = name === "title";
+    if (name === "results" || name === "title") scrollTo(0, 0);
   }
-
   function hud() {
     $("score").textContent = score;
-    $("step").textContent = idx < PROMPTS.length ? `Prompt ${idx + 1} of ${PROMPTS.length}` : "Done";
+    $("step").textContent = idx < PROMPTS.length ? `Prompt ${idx + 1} of ${PROMPTS.length}` : "Dive complete";
   }
 
-  function startGame() {
-    idx = 0; score = 0; progress = 0; trail = [];
-    hud(); askPrompt();
-  }
+  function startGame() { idx = 0; score = 0; depth = 0; trail = []; hud(); askPrompt(); }
 
   function askPrompt() {
     const p = PROMPTS[idx];
@@ -316,12 +282,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
     $("p-text").textContent = p.text;
     $("answer").value = ""; $("go").disabled = true;
     hud(); show("play");
-    setTimeout(() => $("answer").focus(), 60);
+    setTimeout(() => $("answer").focus({ preventScroll: true }), 60);
     deadline = performance.now() + TIME * 1000;
-    clearInterval(timer);
-    timer = setInterval(tick, 100); tick();
+    clearInterval(timer); timer = setInterval(tick, 100); tick();
   }
-
   function tick() {
     const left = Math.max(0, deadline - performance.now()) / 1000;
     $("secs").textContent = Math.ceil(left);
@@ -333,58 +297,56 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
     clearInterval(timer);
     const p = PROMPTS[idx];
     const raw = $("answer").value.trim();
-    let tierKey = p.finale ? "legend" : (timeout && !raw ? "burnt" : judge(p, raw));
-    const t = TIERS[tierKey];
+    const key = p.finale ? "legend" : (timeout && !raw ? "burnt" : judge(p, raw));
+    const t = TIERS[key];
     score += t.pts;
-    progress = Math.min(1, progress + t.roll);
-    trail.push({ q: p.text, a: raw || "—", tier: tierKey });
-    renderVerdict(tierKey, raw, p);
+    depth = Math.min(MAX, depth + t.drop);
+    trail.push({ q: p.text, a: raw || "—", tier: key });
+    renderVerdict(key, raw);
     hud();
-    if (tierKey === "legend") burst();
+    if (key === "legend") burst();
     show("verdict");
-    $("next").textContent = idx === PROMPTS.length - 1 ? "See results →" : "Next prompt →";
+    $("next").textContent = idx === PROMPTS.length - 1 ? "See my dive" : "Next prompt";
     $("next").focus({ preventScroll: true });
   }
 
-  function renderVerdict(key, raw, p) {
+  function renderVerdict(key, raw) {
     const t = TIERS[key], v = $("verdict");
-    v.className = "verdict" + (key === "legend" ? " legend" : "");
+    v.className = "card verdict" + (key === "legend" ? " legend" : "");
     v.innerHTML = "";
-    const el = (tag, cls, txt, style) => { const e = document.createElement(tag); if (cls) e.className = cls; e.textContent = txt; if (style) e.style.cssText = style; v.appendChild(e); return e; };
+    const el = (cls, txt, color) => { const e = document.createElement("p"); e.className = cls; e.textContent = txt; if (color) e.style.color = color; v.appendChild(e); };
     if (key === "legend") {
-      el("p", "pts", raw ? `You said “${raw}”. The one-in-a-cinnamillion answer:` : "The one-in-a-cinnamillion answer:");
-      el("p", "tier", t.name, "color:#c77a3a;font-size:18px");
-      el("p", "said", `“${SALE}”`, "font-size:28px");
-      el("p", "pts", `+${t.pts} PTS · rolled ${Math.round(t.roll * 100)}% deeper`);
-      el("p", "blurb", "Real life, this Tuesday, Nov 17 · 10 AM – 4 PM · in front of Abdul Ladha · $3 Cobbs cinnamon buns.");
+      el("pts", raw ? `You said “${raw}”. The one-in-a-cinnamillion answer:` : "The one-in-a-cinnamillion answer:");
+      el("tier", t.name);
+      el("said", `“${SALE}”`);
+      el("pts", `+${t.pts} pts · sank ${fmt(t.drop)} m`, "#ffcf7a");
+      el("blurb", "Real life, this Tuesday, Nov 17 · 10 AM – 4 PM · in front of Abdul Ladha · $3 Cobbs cinnamon buns.");
     } else {
-      el("p", "tier", t.name, `color:${t.color}`);
-      el("p", "said", raw ? `“${raw}”` : "No answer");
-      el("p", "pts", `+${t.pts} PTS · rolled ${Math.round(t.roll * 100)}% deeper`);
-      el("p", "blurb", t.blurb);
+      el("tier", t.name, t.color);
+      el("said", raw ? `“${raw}”` : "No answer");
+      el("pts", `+${t.pts} pts · sank ${fmt(t.drop)} m`, t.color);
+      el("blurb", t.blurb);
     }
   }
 
-  function next() {
-    idx++;
-    if (idx < PROMPTS.length) askPrompt();
-    else showResults();
-  }
+  function next() { idx++; idx < PROMPTS.length ? askPrompt() : showResults(); }
 
-  const EMOJI = { plain: "🟫", dusted: "🟧", glazed: "⬜", swirl: "🌀", burnt: "⬛", legend: "⭐" };
+  const EMOJI = { plain: "🌊", dusted: "🌿", glazed: "🐙", swirl: "🦑", burnt: "📡", legend: "🥐" };
   function showResults() {
     hud();
+    $("final-depth").textContent = fmt(depth);
+    $("final-zone").textContent = `metres · ${zoneOf(depth)}`;
     $("final-score").textContent = score;
     const ol = $("trail"); ol.innerHTML = "";
     trail.forEach(r => {
       const li = document.createElement("li");
       const a = document.createElement("span"); a.className = "a"; a.textContent = r.tier === "legend" ? SALE : r.a;
       const q = document.createElement("span"); q.className = "q"; q.textContent = r.q; a.prepend(q);
-      const t = document.createElement("span"); t.className = "t"; t.textContent = TIERS[r.tier].name; t.style.color = r.tier === "legend" ? "#f6d77b" : TIERS[r.tier].color;
+      const t = document.createElement("span"); t.className = "t"; t.textContent = TIERS[r.tier].name; t.style.color = TIERS[r.tier].color;
       li.append(a, t); ol.appendChild(li);
     });
     const link = /^https?:/.test(location.href) ? "\n" + location.href.split("#")[0] : "";
-    $("share-text").value = `Swirl ${DAY} · ${score} pts · ${Math.round(progress * 100)}% deep\n${trail.map(r => EMOJI[r.tier]).join(" ")}\nFound a one in a cinnamillion.` + link;
+    $("share-text").value = `Fathom ${DAY} · ${fmt(depth)} m · ${zoneOf(depth)}\n${trail.map(r => EMOJI[r.tier]).join(" ")}  ${score} pts\nFound a one in a cinnamillion.` + link;
     $("toast").textContent = "";
     show("results");
   }
@@ -402,87 +364,172 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--butter); ou
   $("answer").addEventListener("input", e => { $("go").disabled = !e.target.value.trim(); });
   $("answer-form").addEventListener("submit", e => { e.preventDefault(); if ($("answer").value.trim()) submit(false); });
 
-  // ---------- The bun ----------
-  const cv = $("bun"), ctx = cv.getContext("2d");
+  // ---------- The ocean ----------
+  const cv = $("sea"), ctx = cv.getContext("2d");
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let W = 0, rot = 0, sparks = [];
-  const TURNS = 3.6, N = 600;
+  let W = 0, H = 0, shown = 0, sparks = [];
+  const PX = 1.6; // pixels per metre on the ruler
+  const snow = Array.from({ length: 80 }, () => ({ x: Math.random(), y: Math.random(), r: Math.random() * 1.6 + .4 }));
 
   function size() {
-    const r = cv.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2);
-    W = r.width; cv.width = W * d; cv.height = W * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+    const d = Math.min(devicePixelRatio || 1, 2);
+    W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0);
   }
   addEventListener("resize", size); size();
 
-  function pt(t, R) {
-    const th = t * TURNS * Math.PI * 2;
-    const r = R * (0.9 * (1 - t) + 0.02);
-    return [Math.cos(th) * r, Math.sin(th) * r];
-  }
-
-  function path(t0, t1, R) {
-    ctx.beginPath();
-    const steps = Math.max(2, Math.round(N * (t1 - t0)));
-    for (let i = 0; i <= steps; i++) {
-      const [x, y] = pt(t0 + (t1 - t0) * i / steps, R);
-      i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  const STOPS = [[0, [64, 176, 190]], [200, [22, 104, 132]], [1000, [10, 44, 76]], [4000, [5, 22, 44]], [6000, [3, 11, 24]], [11000, [1, 4, 10]]];
+  function waterAt(m) {
+    m = Math.max(0, m);
+    for (let i = 1; i < STOPS.length; i++) {
+      const [a, ca] = STOPS[i - 1], [b, cb] = STOPS[i];
+      if (m <= b) { const k = (m - a) / (b - a); return `rgb(${ca.map((v, j) => Math.round(v + (cb[j] - v) * k)).join(",")})`; }
     }
+    return "rgb(1,4,10)";
   }
+  const rnd = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+
+  const LANDMARKS = [
+    [200, "Twilight zone · sunlight fades"],
+    [1000, "Midnight zone · no sunlight at all"],
+    [3800, "Titanic wreck · 3,800 m"],
+    [4000, "The abyss begins"],
+    [6000, "Hadal zone · ocean trenches"],
+    [10935, "Challenger Deep · the bottom"]
+  ];
 
   function burst() {
-    for (let i = 0; i < 70; i++) {
-      const a = Math.random() * Math.PI * 2, s = 1 + Math.random() * 4;
-      sparks.push({ x: 0, y: 0, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, c: Math.random() < .5 ? "#f6d77b" : "#fffaf0" });
+    for (let i = 0; i < 80; i++) {
+      const a = Math.random() * Math.PI * 2, s = 1 + Math.random() * 4.5;
+      sparks.push({ x: 0, y: 0, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, c: Math.random() < .6 ? "#ffcf7a" : "#fff8ec" });
     }
   }
 
-  function draw() {
-    const R = W * 0.46;
-    shown += (progress - shown) * (reduce ? 1 : 0.06);
-    $("depth").textContent = Math.round(shown * 100) + "%";
-    ctx.clearRect(0, 0, W, W);
-    ctx.save(); ctx.translate(W / 2, W / 2);
+  function draw(ts) {
+    const prev = shown;
+    shown += (depth - shown) * (reduce ? 1 : 0.035);
+    if (Math.abs(depth - shown) < .5) shown = depth;
+    const speed = (shown - prev) * PX;
+    $("depth").textContent = fmt(shown) + " m";
+    $("zone").textContent = zoneOf(shown);
 
-    // shadow + dough
-    ctx.beginPath(); ctx.arc(0, R * 0.06, R * 1.02, 0, 7);
-    ctx.fillStyle = "rgba(40,18,14,.45)"; ctx.fill();
-    const g = ctx.createRadialGradient(-R * .3, -R * .35, R * .1, 0, 0, R);
-    g.addColorStop(0, "#f0b26a"); g.addColorStop(.6, "#d48a45"); g.addColorStop(1, "#a85f2c");
-    ctx.beginPath(); ctx.arc(0, 0, R, 0, 7); ctx.fillStyle = g; ctx.fill();
+    const cx = W / 2;
+    const sy = Math.max(150, H * 0.24) + (reduce ? 0 : Math.sin(ts / 900) * 4);
+    const surf = sy - shown * PX;
 
-    ctx.rotate(rot);
-    ctx.lineCap = "round"; ctx.lineJoin = "round";
-    // cinnamon groove
-    path(0, 1, R); ctx.strokeStyle = "#5a2e1e"; ctx.lineWidth = R * 0.075; ctx.stroke();
-    path(0, 1, R); ctx.strokeStyle = "#8a4a2a"; ctx.lineWidth = R * 0.035; ctx.stroke();
-    // cinnamon speckle
-    ctx.fillStyle = "rgba(90,46,30,.5)";
-    for (let i = 0; i < 90; i++) {
-      const [x, y] = pt((i * 0.618) % 1, R);
-      ctx.fillRect(x + Math.sin(i * 7) * R * .06, y + Math.cos(i * 5) * R * .06, 1.6, 1.6);
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, waterAt(shown - sy / PX)); g.addColorStop(1, waterAt(shown + (H - sy) / PX));
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+    if (surf > 0) {
+      const sg = ctx.createLinearGradient(0, 0, 0, surf);
+      sg.addColorStop(0, "#cfe9ee"); sg.addColorStop(1, "#f3f7ef");
+      ctx.fillStyle = sg; ctx.fillRect(0, 0, W, surf);
+      ctx.beginPath(); ctx.moveTo(0, surf);
+      for (let x = 0; x <= W; x += 8) ctx.lineTo(x, surf + Math.sin(x / 34 + ts / 600) * 3);
+      ctx.lineTo(W, surf + 40); ctx.lineTo(0, surf + 40); ctx.closePath();
+      ctx.fillStyle = "rgb(64,176,190)"; ctx.fill();
+      ctx.save(); ctx.globalAlpha = .08; ctx.fillStyle = "#ffffff";
+      for (let i = 0; i < 6; i++) {
+        const x = (i / 6) * W + Math.sin(ts / 2400 + i) * 30;
+        ctx.beginPath(); ctx.moveTo(x, surf); ctx.lineTo(x + 40, surf); ctx.lineTo(x + 140, surf + 420); ctx.lineTo(x + 60, surf + 420); ctx.closePath(); ctx.fill();
+      }
+      ctx.restore();
     }
-    // glaze trail = how far you've rolled
-    if (shown > 0.002) {
-      ctx.shadowColor = "rgba(255,250,240,.7)"; ctx.shadowBlur = 12;
-      path(0, shown, R); ctx.strokeStyle = "#fffaf0"; ctx.lineWidth = R * 0.06; ctx.stroke();
-      ctx.shadowBlur = 0;
+
+    const onTitle = !$("screen-title").hidden;
+    ctx.font = "500 10.5px 'IBM Plex Mono', monospace";
+    ctx.textBaseline = "middle";
+    const top = shown - sy / PX, bot = shown + (H - sy) / PX;
+    for (let m = Math.ceil(Math.max(0, top) / 50) * 50; m <= bot; m += 50) {
+      const y = sy + (m - shown) * PX, major = m % 250 === 0;
+      ctx.fillStyle = "rgba(200,235,240,.35)";
+      ctx.fillRect(W - (major ? 18 : 9), y, major ? 18 : 9, 1);
+      if (major && !onTitle) { ctx.textAlign = "right"; ctx.fillStyle = "rgba(200,235,240,.55)"; ctx.fillText(fmt(m) + " m", W - 24, y); }
     }
-    // marker
-    const [mx, my] = pt(shown, R);
-    ctx.beginPath(); ctx.arc(mx, my, R * 0.07, 0, 7);
-    ctx.fillStyle = "#f6d77b"; ctx.shadowColor = "#f6d77b"; ctx.shadowBlur = 18; ctx.fill(); ctx.shadowBlur = 0;
-    ctx.lineWidth = 2; ctx.strokeStyle = "#4a2620"; ctx.stroke();
-    ctx.restore();
+    if (!onTitle) LANDMARKS.forEach(([m, label]) => {
+      const y = sy + (m - shown) * PX;
+      if (y < -20 || y > H + 20) return;
+      ctx.setLineDash([4, 6]); ctx.strokeStyle = "rgba(110,242,224,.3)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W - 70, y); ctx.stroke(); ctx.setLineDash([]);
+      ctx.textAlign = "left"; ctx.fillStyle = "rgba(110,242,224,.75)"; ctx.fillText(label, 12, y - 10);
+    });
 
-    // sparks
-    ctx.save(); ctx.translate(W / 2, W / 2);
-    sparks = sparks.filter(s => (s.life -= 0.012) > 0);
-    sparks.forEach(s => { s.x += s.vx; s.y += s.vy; s.vy += 0.03; ctx.globalAlpha = s.life; ctx.fillStyle = s.c; ctx.fillRect(s.x, s.y, 3, 3); });
-    ctx.restore(); ctx.globalAlpha = 1;
+    for (let k = Math.floor(Math.max(0, top) / 120) - 1; k <= bot / 120 + 1; k++) {
+      if (k < 0) continue;
+      const m = k * 120 + rnd(k) * 120, y = sy + (m - shown) * PX;
+      if (y < -60 || y > H + 60 || rnd(k + 7) < .35) continue;
+      const x = 30 + rnd(k + 3) * (W - 100) + Math.sin(ts / 3000 + k) * 14;
+      creature(m, x, y, k, ts);
+    }
 
-    if (!reduce) rot += 0.0025;
+    ctx.fillStyle = "rgba(230,245,245,.45)";
+    snow.forEach(p => {
+      p.y -= (speed + .15) / H; if (p.y < 0) { p.y += 1; p.x = Math.random(); }
+      const y = p.y * H; if (y < surf) return;
+      ctx.fillRect(p.x * W, y, p.r, p.r + Math.min(26, Math.abs(speed) * 2));
+    });
+
+    ctx.strokeStyle = "rgba(220,230,232,.55)"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(cx, Math.max(0, surf - 60)); ctx.lineTo(cx, sy - 30); ctx.stroke();
+
+    const dark = Math.min(1, Math.max(0, (shown - 120) / 600));
+    if (dark > 0) {
+      const lg = ctx.createRadialGradient(cx, sy + 30, 4, cx, sy + 130, 200);
+      lg.addColorStop(0, `rgba(255,207,122,${.35 * dark})`); lg.addColorStop(1, "rgba(255,207,122,0)");
+      ctx.fillStyle = lg;
+      ctx.beginPath(); ctx.moveTo(cx - 12, sy + 20); ctx.lineTo(cx + 12, sy + 20); ctx.lineTo(cx + 130, sy + 300); ctx.lineTo(cx - 130, sy + 300); ctx.closePath(); ctx.fill();
+    }
+
+    // the bathysphere
+    const R = 30;
+    const bg = ctx.createRadialGradient(cx - 10, sy - 12, 4, cx, sy, R);
+    bg.addColorStop(0, "#f2f5f4"); bg.addColorStop(.55, "#a9b8bd"); bg.addColorStop(1, "#56666e");
+    ctx.beginPath(); ctx.arc(cx, sy, R, 0, Math.PI * 2); ctx.fillStyle = bg; ctx.fill();
+    ctx.strokeStyle = "#3b4a52"; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = "#3b4a52";
+    for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * (R - 4), sy + Math.sin(a) * (R - 4), 1.3, 0, 7); ctx.fill(); }
+    ctx.fillRect(cx - 6, sy - R - 5, 12, 6);
+    ctx.beginPath(); ctx.arc(cx, sy + 4, 11, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffcf7a"; ctx.shadowColor = "#ffcf7a"; ctx.shadowBlur = 10 + dark * 22; ctx.fill(); ctx.shadowBlur = 0;
+    ctx.lineWidth = 3; ctx.strokeStyle = "#3b4a52"; ctx.stroke();
+
+    sparks = sparks.filter(s => (s.life -= 0.01) > 0);
+    sparks.forEach(s => { s.x += s.vx; s.y += s.vy; s.vy -= 0.02; ctx.globalAlpha = s.life; ctx.fillStyle = s.c; ctx.fillRect(cx + s.x, sy + s.y, 3, 3); });
+    ctx.globalAlpha = 1;
+
     requestAnimationFrame(draw);
   }
+
+  function creature(m, x, y, k, ts) {
+    ctx.save();
+    if (m < 250) { // a small school of fish
+      ctx.fillStyle = "rgba(10,50,66,.55)";
+      for (let i = 0; i < 6; i++) {
+        const fx = x + (i % 3) * 18 + rnd(k + i) * 8, fy = y + Math.floor(i / 3) * 12 + rnd(k * 3 + i) * 6;
+        ctx.beginPath(); ctx.ellipse(fx, fy, 7, 3, 0, 0, 7); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(fx - 6, fy); ctx.lineTo(fx - 11, fy - 3.5); ctx.lineTo(fx - 11, fy + 3.5); ctx.closePath(); ctx.fill();
+      }
+    } else if (m < 1600) { // jellyfish
+      const pulse = 1 + Math.sin(ts / 700 + k) * .08;
+      ctx.shadowColor = "#b49cff"; ctx.shadowBlur = 14;
+      ctx.fillStyle = "rgba(180,156,255,.32)";
+      ctx.beginPath(); ctx.ellipse(x, y, 13 * pulse, 10, 0, Math.PI, 0); ctx.fill();
+      ctx.shadowBlur = 0; ctx.strokeStyle = "rgba(180,156,255,.35)"; ctx.lineWidth = 1;
+      for (let i = -2; i <= 2; i++) {
+        ctx.beginPath(); ctx.moveTo(x + i * 5, y);
+        for (let j = 1; j <= 5; j++) ctx.lineTo(x + i * 5 + Math.sin(ts / 500 + j + k + i) * 2.5, y + j * 6);
+        ctx.stroke();
+      }
+    } else { // bioluminescent lights in the dark
+      const blink = (Math.sin(ts / 600 + k * 1.7) + 1) / 2;
+      ctx.shadowColor = "#6ef2e0"; ctx.shadowBlur = 12;
+      ctx.fillStyle = `rgba(110,242,224,${.25 + blink * .6})`;
+      const n = 3 + Math.floor(rnd(k + 9) * 5);
+      for (let i = 0; i < n; i++) { ctx.beginPath(); ctx.arc(x + i * 9, y + Math.sin(i + k) * 6, 1.8, 0, 7); ctx.fill(); }
+    }
+    ctx.restore();
+  }
+
   requestAnimationFrame(draw);
 })();
 </script>
